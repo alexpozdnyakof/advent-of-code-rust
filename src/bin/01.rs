@@ -6,12 +6,15 @@ use const_format::concatcp;
 use adv_code_2024::*;
 use std::env;
 
-const DAY: &str = "01"; // TODO: Fill the day
+const DAY: &str = "01";
 const INPUT_FILE: &str = concatcp!("input/", DAY, ".txt");
 
 const TEST: &str = "\
-3   8
-"; // TODO: Add the test input
+1   2
+3   3
+6   7
+5   3
+"; 
 
 fn main() -> Result<()> {
     env::set_var("RUST_BACKTRACE", "full");
@@ -45,8 +48,7 @@ fn main() -> Result<()> {
 	Ok(result.iter().fold(0, |acc, v| acc + v))
     }
 
-    // TODO: Set the expected answer for the test input
-    assert_eq!(5, part1(BufReader::new(TEST.as_bytes()))?);
+    assert_eq!(4, part1(BufReader::new(TEST.as_bytes()))?);
 
     let input_file = BufReader::new(File::open(INPUT_FILE)?);
     let result = time_snippet!(part1(input_file)?);
@@ -54,17 +56,23 @@ fn main() -> Result<()> {
     //endregion
 
     //region Part 2
-    // println!("\n=== Part 2 ===");
-    //
-    // fn part2<R: BufRead>(reader: R) -> Result<usize> {
-    //     Ok(0)
-    // }
-    //
-    // assert_eq!(0, part2(BufReader::new(TEST.as_bytes()))?);
-    //
-    // let input_file = BufReader::new(File::open(INPUT_FILE)?);
-    // let result = time_snippet!(part2(input_file)?);
-    // println!("Result = {}", result);
+    println!("\n=== Part 2 ===");
+
+    fn part2<R: BufRead>(reader: R) -> Result<i32> {
+        let mut result = Vec::<i32>::new();
+	let (left, right) = split_columns(reader);
+        for n in 0..left.len() {
+            let in_right_count = right.iter().filter(|x| **x == left[n]).collect::<Vec<&i32>>().len() as i32;
+            result.push((in_right_count * left[n]).try_into().unwrap());
+        }   
+	Ok(result.iter().fold(0, |acc, v| acc + v))
+    }
+    
+    assert_eq!(6, part2(BufReader::new(TEST.as_bytes()))?);
+    
+    let input_file = BufReader::new(File::open(INPUT_FILE)?);
+    let result = time_snippet!(part2(input_file)?);
+    println!("Result = {}", result);
     //endregion
 
     Ok(())
