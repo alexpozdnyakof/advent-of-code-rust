@@ -9,7 +9,7 @@ const DAY: &str = "03";
 const INPUT_FILE: &str = concatcp!("input/", DAY, ".txt");
 
 const TEST: &str = "\
-xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
+xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
 "; // TODO: Add the test input
 
 fn main() -> Result<()> {
@@ -36,16 +36,14 @@ fn main() -> Result<()> {
                                acc * v.parse::<usize>().unwrap()
                            });
                            result += multiple_result;
-                           println!("{}", result); 
                        }
                        cache = String::new();
                        parsing_mode = false;
                    }
                 }
-                if chars_vec[n] == 'm' && chars_vec[n+1] == 'u' && chars_vec[n+2] == 'l' && chars_vec[n+3] == '(' {
+                if chars_vec[n].is_numeric() && &chars_vec[n-4..n].iter().copied().collect::<String>() == "mul" {
                    parsing_mode = true;
                    n += 4;
-                   
                 } else {
                     n += 1;
                 }
@@ -62,17 +60,18 @@ fn main() -> Result<()> {
     //endregion
 
     //region Part 2
-    // println!("\n=== Part 2 ===");
-    //
-    // fn part2<R: BufRead>(reader: R) -> Result<usize> {
-    //     Ok(0)
-    // }
-    //
-    // assert_eq!(0, part2(BufReader::new(TEST.as_bytes()))?);
-    //
-    // let input_file = BufReader::new(File::open(INPUT_FILE)?);
-    // let result = time_snippet!(part2(input_file)?);
-    // println!("Result = {}", result);
+    println!("\n=== Part 2 ===");
+    
+    fn part2<R: BufRead>(reader: R) -> Result<usize> {
+        //TODO: при переборе символов определять do() и doesnt и включать соответствующий режим
+        Ok(0)
+    }
+    
+    assert_eq!(0, part2(BufReader::new(TEST.as_bytes()))?);
+    
+    let input_file = BufReader::new(File::open(INPUT_FILE)?);
+    let result = time_snippet!(part2(input_file)?);
+    println!("Result = {}", result);
     //endregion
 
     Ok(())
