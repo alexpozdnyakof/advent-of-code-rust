@@ -10,7 +10,7 @@ const INPUT_FILE: &str = concatcp!("input/", DAY, ".txt");
 
 const TEST: &str = "\
 xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
-"; // TODO: Add the test input
+";
 
 fn main() -> Result<()> {
     start_day(DAY);
@@ -22,30 +22,31 @@ fn main() -> Result<()> {
         let answer = reader.lines();
         let mut result = 0;
         for line in answer.into_iter() {
-            let chars_vec: Vec<_> = line.unwrap().chars().collect();
+            let chars: Vec<_> = line.unwrap().chars().collect();
             let mut parsing_mode: bool = false;
-            let mut cache = String::new();
+            let mut numbers_to_multiply = String::new();
+
             let mut n: usize = 0; 
-            while n < chars_vec.len() {
+            while n < chars.len() {
                 if parsing_mode {
-                   if chars_vec[n].is_numeric() || chars_vec[n] == ',' { 
-                       cache.push(chars_vec[n]);
+                   if chars[n].is_numeric() || chars[n] == ',' { 
+                       numbers_to_multiply.push(chars[n]);
                    } else {
-                       if chars_vec[n] == ')' { 
-                           let multiple_result = cache.split(",").fold(1, |acc, v| {
+                       if chars[n] == ')' { 
+                           let multiply_result = numbers_to_multiply.split(",").fold(1, |acc, v| {
                                acc * v.parse::<usize>().unwrap()
                            });
-                           result += multiple_result;
+                           result += multiply_result;
                        }
-                       cache = String::new();
+                       numbers_to_multiply = String::new();
                        parsing_mode = false;
                    }
                 }
-                if chars_vec[n].is_numeric() && &chars_vec[n-4..n].iter().copied().collect::<String>() == "mul" {
+                if n <= chars.len() - 4  && chars_slice_to_str(&chars[n..n+4]) == "mul(" {
                    parsing_mode = true;
                    n += 4;
-                } else {
-                    n += 1;
+                } else { 
+                  n += 1;
                 }
             }
         }
