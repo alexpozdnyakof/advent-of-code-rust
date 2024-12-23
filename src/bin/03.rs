@@ -41,7 +41,6 @@ fn main() -> Result<()> {
         let mut result = 0;
         for line in answer.into_iter() {
             let chars: Vec<_> = line.unwrap().chars().collect();
-            
             let mut n: usize = 0; 
             while n < chars.len() {
                 if chars[n].is_numeric() && n > 3  && chars_slice_to_str(&chars[n-4..n]) == "mul(" {
@@ -67,12 +66,30 @@ fn main() -> Result<()> {
     println!("\n=== Part 2 ===");
     
     fn part2<R: BufRead>(reader: R) -> Result<usize> {
-                //if n <= chars.len() - 4 && chars_slice_to_str(&chars[n..n+4]) == "do()" {
-                //if n <= chars.len() - 7 && chars_slice_to_str(&chars[n..n+7]) == "don't()" {
-        Ok(0)
+        let answer = reader.lines();
+        let mut result = 0;
+        let mut do_multiply = true;
+        for line in answer.into_iter() {
+            let chars: Vec<_> = line.unwrap().chars().collect();
+            let mut n: usize = 0; 
+            while n < chars.len() {
+                if chars[n] == 'd' {
+                    if n <= chars.len()-4 && chars_slice_to_str(&chars[n..n+4]) == "do()" { do_multiply = true }
+                    if n <= chars.len()-7 && chars_slice_to_str(&chars[n..n+7]) == "don't()" { do_multiply = false }
+                }
+                if do_multiply && chars[n].is_numeric() && n > 3  && chars_slice_to_str(&chars[n-4..n]) == "mul(" {
+                    let (shift, step_result) = extract_multiply_result(n, &chars);
+                    result += step_result;
+                    n = shift;
+                } else {
+                    n += 1;
+                }
+            }
+       }
+       Ok(result)
     }
     
-    assert_eq!(0, part2(BufReader::new(TEST.as_bytes()))?);
+    assert_eq!(48, part2(BufReader::new(TEST.as_bytes()))?);
     
     let input_file = BufReader::new(File::open(INPUT_FILE)?);
     let result = time_snippet!(part2(input_file)?);
