@@ -12,6 +12,24 @@ const TEST: &str = "\
 xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
 ";
 
+fn extract_multiply_result(outer_step: usize, chars: &[char]) -> (usize, usize) {
+    let mut x = outer_step;
+    let mut cache = String::new();
+    while x < chars.len() {
+        if chars[x].is_numeric() || chars[x] == ',' {
+            cache.push(chars[x]);
+            x += 1;
+        } else { 
+            if chars[x] != ')' { cache = String::new(); }
+            x += 1;    
+            break;   
+        }          
+    }
+    let result: usize = if cache.len() > 0 { cache.split(",").fold(1, |acc, d| { acc * d.parse::<usize>().unwrap()}) } else { 0 }; 
+    (x, result)
+
+}
+
 fn main() -> Result<()> {
     start_day(DAY);
 
@@ -27,25 +45,12 @@ fn main() -> Result<()> {
             let mut n: usize = 0; 
             while n < chars.len() {
                 if chars[n].is_numeric() && n > 3  && chars_slice_to_str(&chars[n-4..n]) == "mul(" {
-                    let mut x = n;
-                    let mut cache = String::new();
-                    while x < chars.len() {
-                        if chars[x].is_numeric() || chars[x] == ',' {
-                            cache.push(chars[x]);
-                            x += 1;
-                        } else { 
-                            if chars[x] == ')' {
-                                result += cache.split(",").fold(1, |acc, d| { acc * d.parse::<usize>().unwrap()});
-                            }
-                            n = x + 1;    
-                            break;   
-                        }          
-                    }
+                    let (shift, step_result) = extract_multiply_result(n, &chars);
+                    result += step_result;
+                    n = shift;
                 } else {
-                    n += 1;  
-                } 
-
-
+                    n += 1;
+                }
             }
         }
         Ok(result)
