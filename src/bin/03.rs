@@ -23,31 +23,29 @@ fn main() -> Result<()> {
         let mut result = 0;
         for line in answer.into_iter() {
             let chars: Vec<_> = line.unwrap().chars().collect();
-            let mut parsing_mode: bool = false;
-            let mut numbers_to_multiply = String::new();
-
+            
             let mut n: usize = 0; 
             while n < chars.len() {
-                if parsing_mode {
-                   if chars[n].is_numeric() || chars[n] == ',' { 
-                       numbers_to_multiply.push(chars[n]);
-                   } else {
-                       if chars[n] == ')' { 
-                           let multiply_result = numbers_to_multiply.split(",").fold(1, |acc, v| {
-                               acc * v.parse::<usize>().unwrap()
-                           });
-                           result += multiply_result;
-                       }
-                       numbers_to_multiply = String::new();
-                       parsing_mode = false;
-                   }
-                }
-                if n <= chars.len() - 4  && chars_slice_to_str(&chars[n..n+4]) == "mul(" {
-                   parsing_mode = true;
-                   n += 4;
-                } else { 
-                  n += 1;
-                }
+                if chars[n].is_numeric() && n > 3  && chars_slice_to_str(&chars[n-4..n]) == "mul(" {
+                    let mut x = n;
+                    let mut cache = String::new();
+                    while x < chars.len() {
+                        if chars[x].is_numeric() || chars[x] == ',' {
+                            cache.push(chars[x]);
+                            x += 1;
+                        } else { 
+                            if chars[x] == ')' {
+                                result += cache.split(",").fold(1, |acc, d| { acc * d.parse::<usize>().unwrap()});
+                            }
+                            n = x + 1;    
+                            break;   
+                        }          
+                    }
+                } else {
+                    n += 1;  
+                } 
+
+
             }
         }
         Ok(result)
@@ -64,7 +62,8 @@ fn main() -> Result<()> {
     println!("\n=== Part 2 ===");
     
     fn part2<R: BufRead>(reader: R) -> Result<usize> {
-        //TODO: при переборе символов определять do() и doesnt и включать соответствующий режим
+                //if n <= chars.len() - 4 && chars_slice_to_str(&chars[n..n+4]) == "do()" {
+                //if n <= chars.len() - 7 && chars_slice_to_str(&chars[n..n+7]) == "don't()" {
         Ok(0)
     }
     
