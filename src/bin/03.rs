@@ -73,14 +73,18 @@ fn main() -> Result<()> {
             let chars: Vec<_> = line.unwrap().chars().collect();
             let mut n: usize = 0; 
             while n < chars.len() {
-                if chars[n] == 'd' {
-                    if n <= chars.len()-4 && chars_slice_to_str(&chars[n..n+4]) == "do()" { do_multiply = true }
-                    if n <= chars.len()-7 && chars_slice_to_str(&chars[n..n+7]) == "don't()" { do_multiply = false }
-                }
-                if do_multiply && chars[n].is_numeric() && n > 3  && chars_slice_to_str(&chars[n-4..n]) == "mul(" {
-                    let (shift, step_result) = extract_multiply_result(n, &chars);
-                    result += step_result;
-                    n = shift;
+                if chars[n] == '(' {
+                    if chars[n+1] == ')' {
+                        if n >= 2 && chars_slice_to_str(&chars[n-2..n]) == "do" { do_multiply = true }
+                        if n >= 5 && chars_slice_to_str(&chars[n-5..n]) == "don't" { do_multiply = false }
+                        n += 2;
+                    } else if do_multiply && n >= 3 && chars_slice_to_str(&chars[n-3..n]) == "mul" {
+                        let (shift, step_result) = extract_multiply_result(n+1, &chars);
+                        result += step_result;
+                        n = shift;
+                    } else { 
+                        n +=1 
+                    }
                 } else {
                     n += 1;
                 }
