@@ -81,17 +81,67 @@ fn main() -> Result<()> {
     //endregion
 
     //region Part 2
-    // println!("\n=== Part 2 ===");
-    //
-    // fn part2<R: BufRead>(reader: R) -> Result<usize> {
-    //     Ok(0)
-    // }
-    //
-    // assert_eq!(0, part2(BufReader::new(TEST.as_bytes()))?);
-    //
-    // let input_file = BufReader::new(File::open(INPUT_FILE)?);
-    // let result = time_snippet!(part2(input_file)?);
-    // println!("Result = {}", result);
+    println!("\n=== Part 2 ===");
+    
+    fn part2<R: BufRead>(reader: R) -> Result<usize> {
+        let word = "MAS";
+        let word_rev = word.chars().rev().collect::<String>();
+        let is_tail = |ch: char| { ch == word.chars().nth(0).unwrap() || ch == l_char(&word.to_string()) };
+        let is_middle = |ch: char| { ch ==  word.chars().nth(1).unwrap() };
+        let is_equal = |s: String| { s == word || s == word_rev };
+        let mut result: usize = 0;
+        let mut cache: HashMap<(usize,usize), char> = HashMap::new();
+        
+        for (i, line) in reader.lines().flatten().enumerate() {
+            let chars = line.chars().collect::<Vec<_>>();
+            let mut n: usize = 0;
+            while n < chars.len() {
+                if is_tail(chars[n]) { cache.insert((i,n),chars[n]); };
+                if i > 0 && n > 0 {
+                    if n < chars.len() && 
+                       chars[n] == word.chars().nth(1).unwrap() && 
+                       cache.contains_key(&(i-1, n-1)) && 
+                       cache.contains_key(&(i-1, n+1)) && 
+                       is_tail(*cache.get(&(i-1, n-1)).unwrap()) && is_tail(*cache.get(&(i-1,n+1)).unwrap()) { 
+                           cache.insert((i,n),chars[n]);
+                       }
+                }
+                if i >= word.len()-1 && 
+                   n >= word.len()-1 && 
+                   is_tail(chars[n]) && 
+                   is_tail(chars[n-2]) &&
+                   cache.contains_key(&(i-1,n-1)) &&
+                   cache.contains_key(&(i-2,n-2)) &&
+                   cache.contains_key(&(i-2,n))  {
+                     let upper_middle = cache.get(&(i-1,n-1)).unwrap();
+                     let upper_left = cache.get(&(i-2,n-2)).unwrap();
+                     let upper_right = cache.get(&(i-2,n)).unwrap();
+                     if is_middle(*upper_middle) && is_tail(*upper_left) && is_tail(*upper_right) {
+                          let first_word = format!("{}{}{}",*upper_left, *upper_middle, chars[n]);
+                          let second_word = format!("{}{}{}",*upper_right, *upper_middle, chars[n-2]);
+                          if i == 2 && n == 3 { println!("{} {}", first_word, second_word)};
+
+                          if is_equal(first_word) && is_equal(second_word) { println!("{} {}", i, n); result += 1 }
+                          
+                     }
+
+                     // в кэше есть А на i+1 n-1
+                     // получить обе диагонали в виде строк
+                     // сравнить с исходным словом в обе стороны, если совпадает увеличить результат на 1  
+                }
+                n += 1; 
+            }
+        } 
+         println!("{:?}", cache);
+         //TODO: for i > 1 и S&M ищем свою и смежную диагональ если влазит
+         Ok(result)
+    }
+    
+    assert_eq!(9, part2(BufReader::new(TEST.as_bytes()))?);
+    
+    let input_file = BufReader::new(File::open(INPUT_FILE)?);
+    let result = time_snippet!(part2(input_file)?);
+    println!("Result = {}", result);
     //endregion
 
     Ok(())
