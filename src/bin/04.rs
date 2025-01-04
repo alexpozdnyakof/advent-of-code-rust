@@ -120,21 +120,13 @@ fn main() -> Result<()> {
                           let first_word = format!("{}{}{}",*upper_left, *upper_middle, chars[n]);
                           let second_word = format!("{}{}{}",*upper_right, *upper_middle, chars[n-2]);
                           if i == 2 && n == 3 { println!("{} {}", first_word, second_word)};
-
-                          if is_equal(first_word) && is_equal(second_word) { println!("{} {}", i, n); result += 1 }
-                          
+                          if is_equal(first_word) && is_equal(second_word) { result += 1 }
                      }
-
-                     // в кэше есть А на i+1 n-1
-                     // получить обе диагонали в виде строк
-                     // сравнить с исходным словом в обе стороны, если совпадает увеличить результат на 1  
                 }
                 n += 1; 
             }
         } 
-         println!("{:?}", cache);
-         //TODO: for i > 1 и S&M ищем свою и смежную диагональ если влазит
-         Ok(result)
+        Ok(result)
     }
     
     assert_eq!(9, part2(BufReader::new(TEST.as_bytes()))?);
