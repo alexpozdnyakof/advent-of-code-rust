@@ -21,7 +21,6 @@ mod tests {
     fn chars_to_slice_test() {
         let chars = vec!['m', 'u', 'l'];
         let result = chars_slice_to_str(&chars[0..3]);
-        assert_eq!(result, "mul"); 
+        assert_eq!(result, "mul");
     }
-    
 }
