@@ -71,19 +71,8 @@ impl Graph {
             self.data.insert(v, vec![e]);
         }
     }
-
-    fn validate_path(&self, path: &Vec<usize>) -> bool {
-        for (i, edge) in path.into_iter().enumerate() {
-            if i == path.len() - 1 {
-                continue;
-            }
-            if !(self.data.contains_key(&edge)
-                && self.data.get(&edge).unwrap().contains(&path[i + 1]))
-            {
-                return false;
-            }
-        }
-        return true;
+    fn validate_edge(&self, v: &usize, e: &usize) -> bool {
+        self.data.contains_key(&v) && self.data.get(&v).unwrap().contains(&e)
     }
 }
 
@@ -111,8 +100,15 @@ fn main() -> Result<()> {
                     .split(",")
                     .map(|s| s.parse::<usize>().unwrap())
                     .collect();
-                if graph.validate_path(&path) {
-                    result += path[(path.len() - 1) / 2]
+
+                for (i, edge) in (&path).into_iter().enumerate() {
+                    if i == path.len() - 1 {
+                        result += path[(path.len() - 1) / 2];
+                        break;
+                    }
+                    if !graph.validate_edge(edge, &path[i + 1]) {
+                        break;
+                    }
                 }
             }
         }
@@ -133,6 +129,7 @@ fn main() -> Result<()> {
         let mut is_parsing_finished = false;
         let mut graph = Graph::new();
         let mut result: usize = 0;
+
         for line in reader.lines().flatten() {
             if line.len() == 0 {
                 is_parsing_finished = true;
@@ -143,13 +140,10 @@ fn main() -> Result<()> {
                     collect_array(line.split("|").map(|s| s.parse::<usize>().unwrap()));
                 graph.add_edge(v, e);
             } else {
-                let path: Vec<usize> = line
+                let mut path: Vec<usize> = line
                     .split(",")
                     .map(|s| s.parse::<usize>().unwrap())
                     .collect();
-                if graph.validate_path(&path) {
-                    result += path[(path.len() - 1) / 2]
-                }
             }
         }
         Ok(result)
