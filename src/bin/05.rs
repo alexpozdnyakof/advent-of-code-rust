@@ -74,6 +74,7 @@ impl Graph {
     fn validate_edge(&self, v: &usize, e: &usize) -> bool {
         self.data.contains_key(&v) && self.data.get(&v).unwrap().contains(&e)
     }
+
 }
 
 fn main() -> Result<()> {
@@ -144,12 +145,34 @@ fn main() -> Result<()> {
                     .split(",")
                     .map(|s| s.parse::<usize>().unwrap())
                     .collect();
+
+                let mut i = 0;
+                let mut swap_count = 0;
+                while i < path.len() {
+                    if i == path.len() - 1 {
+                        if swap_count > 0 { result += path[(path.len() - 1) / 2] };
+                        break;
+                    }
+                    if graph.validate_edge(&path[i], &path[i+1]) {
+                        i+=1;
+                        continue;
+                    }
+
+                    if graph.validate_edge(&path[i+1], &path[i]) {
+                        path.swap(i, i+1);
+                        swap_count += 1;
+                        i = if i == 0 { i } else { i-1 };
+                    } else {
+                        break;
+                    }
+                }
             }
         }
+        println!("{}", result);
         Ok(result)
     }
 
-    assert_eq!(266, part2(BufReader::new(TEST.as_bytes()))?);
+    assert_eq!(123, part2(BufReader::new(TEST.as_bytes()))?);
 
     let input_file = BufReader::new(File::open(INPUT_FILE)?);
     let result = time_snippet!(part2(input_file)?);
