@@ -32,58 +32,25 @@ enum Direction {
 
 type Coordinates = (usize, usize);
 
-#[derive(Debug)]
-struct GuardState {
-    direction: Direction,
-    _turns: Vec<Coordinates>
-}
-
-
-impl GuardState {
-    fn new(init_position: Coordinates) -> GuardState {
-         GuardState { 
-            direction: Direction::Up,
-            _turns:vec![init_position],
-         }
-    }
-
-    fn change_direction(&mut self) -> Direction {
-        static DIRECTIONS: [Direction; 4] = [Direction::Up, Direction::Right, Direction::Down, Direction::Left];
-        let cur_idx = DIRECTIONS.iter().position(|dir| dir == &self.direction).unwrap();
-        
-        if cur_idx == DIRECTIONS.len() - 1 { 
-           self.direction = DIRECTIONS[0]; 
-        } else { 
-           self.direction = DIRECTIONS[cur_idx + 1]
-        };
-        self.direction
-    }
-
-    fn go_forward(&mut self) -> Coordinates {
-        let mut new_position = self._turns[self._turns.len()-1];
-        new_position = match self.direction {
-            Direction::Up => (new_position.0-1, new_position.1),
-            Direction::Down => (new_position.0+1, new_position.1),
-            Direction::Right =>(new_position.0, new_position.1 + 1),
-            Direction::Left => (new_position.0, new_position.1 - 1) 
-        };
-        if let Some(idx) = self._turns.iter().position(|item| { item == &new_position}) {
-            self._turns.remove(idx);
-        }
-        self._turns.push(new_position);
-        new_position
-    }
-    
-    fn go_back(&mut self) {
-        self._turns.pop();
-    }
-    fn position(&self) -> Option<&Coordinates>{
-        self._turns.last()
-    }
-    fn count_turns(&self) -> usize {
-        self._turns.len()
+fn next_position(position: Coordinates, direction: Direction) -> Coordinates {
+    match direction {
+        Direction::Up => (position.0-1, position.1),
+        Direction::Down => (position.0+1, position.1),
+        Direction::Right =>(position.0, position.1 + 1),
+        Direction::Left => (position.0, position.1 - 1) 
     }
 }
+
+static DIRECTIONS: [Direction; 4] = [Direction::Up, Direction::Right, Direction::Down, Direction::Left];
+
+fn next_direction(direction: Direction) -> Direction {
+    let cur_idx = DIRECTIONS.iter().position(|dir| *dir == direction).unwrap();    
+    if cur_idx == DIRECTIONS.len() - 1 { 
+        DIRECTIONS[0] 
+    } else { 
+        DIRECTIONS[cur_idx + 1]
+    }
+} 
 
 
 fn main() -> Result<()> {
@@ -95,36 +62,39 @@ fn main() -> Result<()> {
     fn part1<R: BufRead>(reader: R) -> Result<usize> {
         let mut constraints: Coordinates = (0,0);
         let mut obstacles: Vec<Coordinates> = Vec::new();
-        let mut start_position = (0,0); 
-        
+        let mut position = (0,0);
+        let mut direction = Direction::Up;
+        let mut visited: Vec<Coordinates> = Vec::new();
         for (i, line) in reader.lines().flatten().enumerate() {
             constraints.1 = i;
             for (j, symbol) in line.chars().enumerate() {
-                 if symbol == '#' { obstacles.push((i,j)) };
-                 if symbol == '^' { start_position = (i, j) };
+                 if symbol == '#' { obstacles.push((i,j)); };
+                 if symbol == '^' { position = (i, j); };
             } 
         }
-        let mut guard = GuardState::new(start_position);
-
+        let mut visited_unique_count = 1;
+         
+        visited.push(position);
         loop {
-            let (x,y) = *guard.position().unwrap();
+            let new_position = next_position(position, direction); 
+            
+            if obstacles.contains(&new_position) {
+                 direction = next_direction(direction);
+                 continue;
+            }
+            
+            if !visited.contains(&new_position) { visited_unique_count += 1; }
+            visited.push(new_position);
+            
             let (min,max) = constraints;
-            if x == max || y == max || x == min || y == min {
+            if new_position.0 == max || new_position.1 == max || new_position.0 == min || new_position.1 == min {
                  break
             }       
-
-            guard.go_forward();
             
-            if let Some(next_position) = guard.position() {
-                 if obstacles.contains(&next_position) { 
-                      guard.go_back();
-                      guard.change_direction();
-                      continue;
-                 }
-            }
+            position = new_position;
         }
 
-        Ok(guard.count_turns())
+        Ok(visited_unique_count)
     }
 
     assert_eq!(41, part1(BufReader::new(TEST.as_bytes()))?);
