@@ -26,9 +26,7 @@ enum Operation {
     Multiply
 }
 
-fn get_op_permutations<T>(size: usize, variants: &[T; 2]) -> Vec<Vec<T>>
-    where T:Copy   
-{
+fn get_op_permutations<T: Copy>(size: usize, variants: &[T; 2]) -> Vec<Vec<T>> {
     let max_permutations = 1 << size;
     let mut result: Vec<Vec<T>> = Vec::new();
     for i in 0..max_permutations {
@@ -56,8 +54,6 @@ fn main() -> Result<()> {
             
             for permutation in  get_op_permutations(pow, &[Operation::Add, Operation::Multiply]).iter() {
                 let mut result: usize = numbers[0];
-                
-                
                 for (i, operation) in permutation.iter().enumerate() {
                     match operation {
                         Operation::Add => result += numbers[i+1],
