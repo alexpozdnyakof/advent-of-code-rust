@@ -3,7 +3,6 @@ use anyhow::*;
 use code_timing_macros::time_snippet;
 use const_format::concatcp;
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
