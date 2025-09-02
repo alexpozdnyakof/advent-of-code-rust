@@ -57,6 +57,9 @@ fn fragmentate(file_system: &mut FileSystem) -> &mut FileSystem {
     file_system
 } 
 
+fn calc_check_sum(file_system: &FileSystem) -> usize {
+    file_system.iter().enumerate().fold(0, |acc, (i, b)| if *b == -1_isize { acc } else {  acc + i * *b as usize })
+}
 
 
 fn main() -> Result<()> {
@@ -69,19 +72,13 @@ fn main() -> Result<()> {
         if let Some(raw_blocks) = reader.lines().next().transpose()? {
             let mut file_system = normalize(&raw_blocks);
             let file_system = fragmentate(&mut file_system);
-            
-            let mut result = 0;
-            for (i, b) in file_system.iter().enumerate() {
-                if *b == -1_isize { break; }
-                result += i * *b as usize; 
-            } 
-            Ok(result)
+            let check_sum= calc_check_sum(&file_system);
+            Ok(check_sum)
         } else {
             Err(anyhow!("File not found"))
         }
     }
 
-    // TODO: Set the expected answer for the test input
     assert_eq!(1928, part1(BufReader::new(TEST.as_bytes()))?);
 
     let input_file = BufReader::new(File::open(INPUT_FILE)?);
@@ -90,17 +87,16 @@ fn main() -> Result<()> {
     //endregion
 
     //region Part 2
-    // println!("\n=== Part 2 ===");
-    //
-    // fn part2<R: BufRead>(reader: R) -> Result<usize> {
-    //     Ok(0)
-    // }
-    //
-    // assert_eq!(0, part2(BufReader::new(TEST.as_bytes()))?);
-    //
-    // let input_file = BufReader::new(File::open(INPUT_FILE)?);
-    // let result = time_snippet!(part2(input_file)?);
-    // println!("Result = {}", result);
+    //println!("\n=== Part 2 ===");
+    
+    //fn part2<R: BufRead>(reader: R) -> Result<usize> {
+    //}
+    
+    //assert_eq!(2858, part2(BufReader::new(TEST.as_bytes()))?);
+    
+    //let input_file = BufReader::new(File::open(INPUT_FILE)?);
+    //let result = time_snippet!(part2(input_file)?);
+    //println!("Result = {}", result);
     //endregion
 
     Ok(())
