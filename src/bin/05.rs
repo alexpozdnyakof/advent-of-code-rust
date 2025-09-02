@@ -73,7 +73,6 @@ impl Graph {
     fn validate_edge(&self, v: &usize, e: &usize) -> bool {
         self.data.contains_key(&v) && self.data.get(&v).unwrap().contains(&e)
     }
-
 }
 
 fn main() -> Result<()> {
@@ -149,18 +148,20 @@ fn main() -> Result<()> {
                 let mut swap_count = 0;
                 while i < path.len() {
                     if i == path.len() - 1 {
-                        if swap_count > 0 { result += path[(path.len() - 1) / 2] };
+                        if swap_count > 0 {
+                            result += path[(path.len() - 1) / 2]
+                        };
                         break;
                     }
-                    if graph.validate_edge(&path[i], &path[i+1]) {
-                        i+=1;
+                    if graph.validate_edge(&path[i], &path[i + 1]) {
+                        i += 1;
                         continue;
                     }
 
-                    if graph.validate_edge(&path[i+1], &path[i]) {
-                        path.swap(i, i+1);
+                    if graph.validate_edge(&path[i + 1], &path[i]) {
+                        path.swap(i, i + 1);
                         swap_count += 1;
-                        i = if i == 0 { i } else { i-1 };
+                        i = if i == 0 { i } else { i - 1 };
                     } else {
                         break;
                     }

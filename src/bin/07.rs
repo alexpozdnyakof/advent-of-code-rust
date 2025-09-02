@@ -18,13 +18,13 @@ const TEST: &str = "\
 192: 17 8 14
 21037: 9 7 18 13
 292: 11 6 16 20
-"; 
+";
 
 #[derive(PartialEq, Clone, Debug, Copy)]
 enum Operation {
     Add,
     Multiply,
-    Concat
+    Concat,
 }
 
 fn get_op_permutations<T: Copy>(size: usize, variants: &[T]) -> Vec<Vec<T>> {
@@ -46,11 +46,10 @@ fn get_op_permutations<T: Copy>(size: usize, variants: &[T]) -> Vec<Vec<T>> {
 }
 
 fn concat_numbers(a: usize, b: usize) -> usize {
-        let digits = (b as f64).log10().floor() as u32 + 1;
-        let factor = 10_usize.pow(digits);
-        a * factor + b 
+    let digits = (b as f64).log10().floor() as u32 + 1;
+    let factor = 10_usize.pow(digits);
+    a * factor + b
 }
-
 
 fn main() -> Result<()> {
     start_day(DAY);
@@ -58,21 +57,31 @@ fn main() -> Result<()> {
     println!("=== Part 1 ===");
 
     fn part1<R: BufRead>(reader: R) -> Result<usize> {
-        let mut answer = 0; 
+        let mut answer = 0;
         'line: for line in reader.lines().flatten() {
             let splitted: Vec<&str> = line.split(":").collect();
             let expected = splitted[0].parse::<usize>().unwrap();
-            let numbers: Vec<usize> = splitted[1].trim().split(" ").map(|s| s.parse::<usize>().unwrap()).collect();
-            let pow: usize = if numbers.len() > 0 { numbers.len() - 1 } else { 0 };
-            
-            for permutation in get_op_permutations(pow, &[Operation::Add, Operation::Multiply]).iter() {
+            let numbers: Vec<usize> = splitted[1]
+                .trim()
+                .split(" ")
+                .map(|s| s.parse::<usize>().unwrap())
+                .collect();
+            let pow: usize = if numbers.len() > 0 {
+                numbers.len() - 1
+            } else {
+                0
+            };
+
+            for permutation in
+                get_op_permutations(pow, &[Operation::Add, Operation::Multiply]).iter()
+            {
                 let mut result: usize = numbers[0];
                 for (i, operation) in permutation.iter().enumerate() {
                     match operation {
-                        Operation::Add => result += numbers[i+1],
-                        Operation::Multiply => result *= numbers[i+1],
+                        Operation::Add => result += numbers[i + 1],
+                        Operation::Multiply => result *= numbers[i + 1],
                         _ => {}
-                    }    
+                    }
                 }
                 if result == expected {
                     answer += expected;
@@ -92,23 +101,34 @@ fn main() -> Result<()> {
 
     //region Part 2
     println!("\n=== Part 2 ===");
-   
-
 
     fn part2<R: BufRead>(reader: R) -> Result<usize> {
-        let mut answer = 0; 
+        let mut answer = 0;
         'line: for line in reader.lines().flatten() {
             let splitted: Vec<&str> = line.split(":").collect();
             let expected = splitted[0].parse::<usize>().unwrap();
-            let numbers: Vec<usize> = splitted[1].trim().split(" ").map(|s| s.parse::<usize>().unwrap()).collect();
-            let pow: usize = if numbers.len() > 0 { numbers.len() - 1 } else { 0 };
-            for permutation in get_op_permutations(pow, &[Operation::Add, Operation::Multiply, Operation::Concat]).iter() {
+            let numbers: Vec<usize> = splitted[1]
+                .trim()
+                .split(" ")
+                .map(|s| s.parse::<usize>().unwrap())
+                .collect();
+            let pow: usize = if numbers.len() > 0 {
+                numbers.len() - 1
+            } else {
+                0
+            };
+            for permutation in get_op_permutations(
+                pow,
+                &[Operation::Add, Operation::Multiply, Operation::Concat],
+            )
+            .iter()
+            {
                 let mut result: usize = numbers[0];
                 for (i, operation) in permutation.iter().enumerate() {
                     result = match operation {
-                        Operation::Add => result + numbers[i+1],
-                        Operation::Multiply => result * numbers[i+1],
-                        Operation::Concat => concat_numbers(result, numbers[i+1])
+                        Operation::Add => result + numbers[i + 1],
+                        Operation::Multiply => result * numbers[i + 1],
+                        Operation::Concat => concat_numbers(result, numbers[i + 1]),
                     };
                 }
 
@@ -120,9 +140,9 @@ fn main() -> Result<()> {
         }
         Ok(answer)
     }
-    
+
     assert_eq!(11387, part2(BufReader::new(TEST.as_bytes()))?);
-    
+
     let input_file = BufReader::new(File::open(INPUT_FILE)?);
     let result = time_snippet!(part2(input_file)?);
     println!("Result = {}", result);
