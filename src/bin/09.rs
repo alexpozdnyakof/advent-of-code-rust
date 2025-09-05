@@ -112,7 +112,6 @@ impl FileSystem {
 
     fn free(&mut self, target: usize, size: usize) -> Result<(usize, usize)> {
         if let Some((&file_position, file)) = self.files.index.range(..=&target).last() {
-            //self.files.index.range(..=target).last() {
             if size == file.size {
                 self.free_space
                     .insert(file_position, create_free_desc(file.size));
@@ -176,7 +175,6 @@ impl FileSystem {
         None
     }
 
-
     fn files(&self) -> &BTreeMap<usize, LocationDescriptor> {
         &self.files.index
     }
@@ -201,6 +199,25 @@ impl FileSystem {
     }
 }
 
+fn fragmentate(
+    position: usize,
+    file: LocationDescriptor,
+    file_system: &mut FileSystem,
+) -> Result<&mut FileSystem> {
+    let mut size = file.size;
+    let chunk_size = 1;
+    while size != 0 {
+        if let Some(allocated_position) = file_system.allocate_before(&position, chunk_size) {
+            file_system.copy(position, chunk_size, allocated_position);
+            file_system.free(position, chunk_size)?;
+            size -= chunk_size;
+        } else {
+            return Err(anyhow!("Unable allocate free space"));
+        }
+    }
+    Ok(file_system)
+}
+
 fn main() -> Result<()> {
     start_day(DAY);
 
@@ -210,43 +227,15 @@ fn main() -> Result<()> {
     fn part1<R: BufRead>(reader: R) -> Result<usize> {
         if let Some(raw_blocks) = reader.lines().next().transpose()? {
             let mut file_system = from_raw(&raw_blocks);
-            let files: Vec<(usize, LocationDescriptor)> = file_system
-                .files()
-                .iter()
-                .map(|(&k, &v)| (k, v))
-                .collect();
-            let chunk_size = 1;
-
-            let fragmentate = |position: &usize,
-                               file: &LocationDescriptor,
-                               file_system: &mut FileSystem|
-             -> Result<()> {
-                let mut size = file.size;
-                while size != 0 {
-                    if let Some(allocated_position) =
-                        file_system.allocate_before(position, chunk_size)
-                    {
-                        file_system.copy(*position, chunk_size, allocated_position);
-                        let cleared = file_system.free(*position, chunk_size);
-                        if cleared.is_ok() {
-                            size -= chunk_size;
-                        } else {
-                            return Err(anyhow!("blabla"));
-                        }
-                    } else {
-                        return Err(anyhow!("Unable allocate free space"));
-                    }
-                }
-                Ok(())
-            };
+            let files: Vec<(usize, LocationDescriptor)> =
+                file_system.files().iter().map(|(&k, &v)| (k, v)).collect();
 
             for (position, file) in files.iter().rev() {
-                if let Err(reason) = fragmentate(&position, file, &mut file_system) {
+                if let Err(reason) = fragmentate(*position, *file, &mut file_system) {
                     println!("{:?}", reason);
                     break;
                 }
             }
-            file_system.print();
             Ok(file_system.check_sum())
         } else {
             Err(anyhow!("File not found"))
