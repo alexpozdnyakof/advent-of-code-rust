@@ -203,9 +203,9 @@ fn fragmentate(
     position: usize,
     file: LocationDescriptor,
     file_system: &mut FileSystem,
+    chunk_size: usize,
 ) -> Result<&mut FileSystem> {
     let mut size = file.size;
-    let chunk_size = 1;
     while size != 0 {
         if let Some(allocated_position) = file_system.allocate_before(&position, chunk_size) {
             file_system.copy(position, chunk_size, allocated_position);
@@ -231,7 +231,7 @@ fn main() -> Result<()> {
                 file_system.files().iter().map(|(&k, &v)| (k, v)).collect();
 
             for (position, file) in files.iter().rev() {
-                if let Err(reason) = fragmentate(*position, *file, &mut file_system) {
+                if let Err(reason) = fragmentate(*position, *file, &mut file_system, 1) {
                     println!("{:?}", reason);
                     break;
                 }
@@ -253,7 +253,18 @@ fn main() -> Result<()> {
     println!("\n=== Part 2 ===");
 
     fn part2<R: BufRead>(reader: R) -> Result<usize> {
-        Ok(0)
+        if let Some(raw_blocks) = reader.lines().next().transpose()? {
+            let mut file_system = from_raw(&raw_blocks);
+            let files: Vec<(usize, LocationDescriptor)> =
+                file_system.files().iter().map(|(&k, &v)| (k, v)).collect();
+
+            for (position, file) in files.iter().rev() {
+                fragmentate(*position, *file, &mut file_system, file.size).ok();
+            }
+            Ok(file_system.check_sum())
+        } else {
+            Err(anyhow!("File not found"))
+        }
     }
 
     assert_eq!(2858, part2(BufReader::new(TEST.as_bytes()))?);
