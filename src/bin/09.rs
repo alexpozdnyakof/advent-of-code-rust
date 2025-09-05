@@ -76,8 +76,8 @@ fn create_data_desc(size: usize, id: usize) -> LocationDescriptor {
     LocationDescriptor { id: Some(id), size }
 }
 
-fn from_raw(raw: &RawBlocks) -> NTFS {
-    let mut ntfs = NTFS::new();
+fn from_raw(raw: &RawBlocks) -> FileSystem {
+    let mut ntfs = FileSystem::new();
     let mut offset = 0;
     for (i, ch) in raw.chars().enumerate() {
         if let Some(size) = ch.to_digit(10).map(|n| n as usize) {
@@ -97,14 +97,14 @@ fn from_raw(raw: &RawBlocks) -> NTFS {
     ntfs
 }
 
-struct NTFS {
+struct FileSystem {
     files: LocationIndex,
     free_space: LocationIndex,
 }
 
-impl NTFS {
+impl FileSystem {
     fn new() -> Self {
-        NTFS {
+        FileSystem {
             files: LocationIndex::new(),
             free_space: LocationIndex::new(),
         }
@@ -176,6 +176,11 @@ impl NTFS {
         None
     }
 
+
+    fn files(&self) -> &BTreeMap<usize, LocationDescriptor> {
+        &self.files.index
+    }
+
     fn print(&self) {
         let mut e_index = self.files.index.clone();
         e_index.extend(self.free_space.index.clone());
@@ -206,8 +211,7 @@ fn main() -> Result<()> {
         if let Some(raw_blocks) = reader.lines().next().transpose()? {
             let mut file_system = from_raw(&raw_blocks);
             let files: Vec<(usize, LocationDescriptor)> = file_system
-                .files
-                .index
+                .files()
                 .iter()
                 .map(|(&k, &v)| (k, v))
                 .collect();
@@ -215,7 +219,7 @@ fn main() -> Result<()> {
 
             let fragmentate = |position: &usize,
                                file: &LocationDescriptor,
-                               file_system: &mut NTFS|
+                               file_system: &mut FileSystem|
              -> Result<()> {
                 let mut size = file.size;
                 while size != 0 {
